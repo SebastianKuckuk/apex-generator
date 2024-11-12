@@ -129,8 +129,8 @@ if len(sys.argv) < 4:
     print(f'Usage: python {sys.argv[0]} machine app backend')
     exit(1)
 
-cla_machine = sys.argv[1]   # 'nvidia.alex.a40'
-cla_app = sys.argv[2]       # 'all'
+cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
+cla_app = sys.argv[2]      # 'all'
 cla_backend = sys.argv[3]  # 'all'
 
 apps = get_default_apps()
