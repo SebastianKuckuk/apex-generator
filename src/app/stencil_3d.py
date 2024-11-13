@@ -22,6 +22,7 @@ class Stencil3D:
             Variable('nz', 'size_t'),
         ]
         it_space = [[i, 1, s - 1] for i, s in zip(iterators, sizes)]
+        full_it_space = [[i, 0, s] for i, s in zip(iterators, sizes)]
 
         u = backend.Field('u', 'tpe', sizes)
         uNew = backend.Field('uNew', 'tpe', sizes)
@@ -65,7 +66,7 @@ class Stencil3D:
                 std::cout << "  Final residual is " << res << std::endl;
             '''
             kernels = [
-                backend.Kernel(f'init{cls.name_as_postfix}', sizes, [], fields, it_space, init, num_flop=0),
+                backend.Kernel(f'init{cls.name_as_postfix}', sizes, [], fields, full_it_space, init, num_flop=0),
                 backend.Kernel(f'checkSolution{cls.name_as_postfix}', [*sizes, Variable('nIt', 'size_t')], fields, [], [], check, num_flop=0),
             ]
 
