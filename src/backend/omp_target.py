@@ -18,8 +18,8 @@ class OMPTarget(Backend):
 
 
     class Kernel(AbstractKernel):
-        def __init__(self, name, variables, reads, writes, it_space, body, num_flop):
-            super().__init__(name, variables, reads, writes, it_space, body, num_flop)
+        def __init__(self, name, variables, reads, writes, it_space, body, has_tpe_template=True, num_flop=0):
+            super().__init__(name, variables, reads, writes, it_space, body, has_tpe_template, num_flop)
 
         def launch(self):
             parameters = ', '.join(
@@ -33,7 +33,7 @@ class OMPTarget(Backend):
             parameters = ', '.join(
                 [f'const {f.tpe} * const __restrict__ {f.name}' for f in self.reads if f not in self.writes]
                 + [f'{f.tpe} *__restrict__ {f.name}' for f in self.writes]
-                + [f'const {v.tpe} {v.name}' for v in self.variables])
+                + [f'{v.tpe} {v.name}' for v in self.variables])
 
             body_in_loops = f'{self.body}'
             for loop in self.it_space:
@@ -44,7 +44,7 @@ class OMPTarget(Backend):
 
             collapse = f' collapse({len(self.it_space)})' if len(self.it_space) > 1 else ''
             return \
-                f'template<typename tpe>{newline}' + \
+                (f'template<typename tpe>{newline}' if self.has_tpe_template else '') + \
                 f'inline void {self.fct_name}({parameters}) {"{"}{newline}' + \
                 f'#pragma omp target teams distribute parallel for{collapse}{newline}' + \
                 body_in_loops + newline + \
@@ -77,8 +77,8 @@ class OMPTargetExpl(OMPTarget):
 
 
     class Application(AbstractApplication):
-        def __init__(self, backend, app, sizes, kernels):
-            super().__init__(backend, app, sizes, kernels)
+        def __init__(self, backend, app, sizes, parameters, kernels):
+            super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
             return f'#include "{self.app}-util.h"{newline}' + \
@@ -122,8 +122,8 @@ class OMPTargetMM(OMPTarget):
 
 
     class Application(AbstractApplication):
-        def __init__(self, backend, app, sizes, kernels):
-            super().__init__(backend, app, sizes, kernels)
+        def __init__(self, backend, app, sizes, parameters, kernels):
+            super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
             return f'#include "{self.app}-util.h"{newline}' + \

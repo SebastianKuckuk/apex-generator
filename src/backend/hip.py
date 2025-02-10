@@ -24,8 +24,8 @@ class Hip(Backend):
 
 
     class Kernel(AbstractKernel):
-        def __init__(self, name, variables, reads, writes, it_space, body, num_flop):
-            super().__init__(name, variables, reads, writes, it_space, body, num_flop)
+        def __init__(self, name, variables, reads, writes, it_space, body, has_tpe_template=True, num_flop=0):
+            super().__init__(name, variables, reads, writes, it_space, body, has_tpe_template, num_flop)
 
         def launch(self):
             parameters = ', '.join(
@@ -39,7 +39,7 @@ class Hip(Backend):
             parameters = ', '.join(
                 [f'const {f.tpe} * const __restrict__ {f.name}' for f in self.reads if f not in self.writes]
                 + [f'{f.tpe} *__restrict__ {f.name}' for f in self.writes]
-                + [f'const {v.tpe} {v.name}' for v in self.variables])
+                + [f'{v.tpe} {v.name}' for v in self.variables])
 
             tids = newline.join(f'const {self.it_space[d][0].tpe} {self.it_space[d][0]} = blockIdx.{s} * blockDim.{s} + threadIdx.{s};'
                                 for d, s in enumerate(dim_to_char[0: len(self.it_space)]))
@@ -49,7 +49,7 @@ class Hip(Backend):
                                   for d in range(len(self.it_space)))
 
             return \
-                f'template<typename tpe>{newline}' + \
+                (f'template<typename tpe>{newline}' if self.has_tpe_template else '') + \
                 f'__global__ void {self.fct_name}({parameters}) {"{"}{newline}' + \
                 tids + newline + \
                 newline + \
@@ -60,8 +60,8 @@ class Hip(Backend):
 
 
     class Application(AbstractApplication):
-        def __init__(self, backend, app, sizes, kernels):
-            super().__init__(backend, app, sizes, kernels)
+        def __init__(self, backend, app, sizes, parameters, kernels):
+            super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
             block_size = ', '.join(str(s) for s in Hip.def_block_sizes[len(self.sizes)])

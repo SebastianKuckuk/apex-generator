@@ -23,7 +23,8 @@ class Init:
         if backend == UtilHeader:
             kernels = [
                 backend.Kernel(f'init{cls.name_as_postfix}', sizes, [], [data], it_space, Assignment(data.access(iterators), '(tpe)0'), num_flop=0),
-                backend.generate_check_kernel(cls, [data], sizes, it_space, iterators[0], data.access(iterators))
+                backend.generate_check_kernel(cls, [data], sizes, it_space, iterators[0], data.access(iterators)),
+                backend.generate_parse_kernel(cls, sizes, [])
             ]
 
         else:
@@ -31,7 +32,7 @@ class Init:
                 backend.Kernel(cls.name, sizes, [], [data], it_space, Assignment(data.access(iterators), iterators[0]), num_flop=0)
             ]
 
-        return backend.Application(backend, cls.name, sizes, kernels)
+        return backend.Application(backend, cls.name, sizes, [], kernels)
 
     @classmethod
     def sizes_to_bench(cls):

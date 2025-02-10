@@ -6,10 +6,18 @@ from util import *
 
 
 class AbstractApplication:
-    def __init__(self, backend, app, sizes, kernels):
+    def __init__(self, backend, app, sizes, parameters, kernels):
         self.backend = backend
         self.app = app
         self.sizes = sizes
+
+        if parameters is None:
+            self.parameters = []
+        elif isinstance(parameters, list):
+            self.parameters = parameters
+        else:
+            self.parameters = [parameters]
+
         if isinstance(kernels, list):
             self.kernels = kernels
         else:
@@ -54,13 +62,20 @@ class AbstractApplication:
 
     def mainStart(self):
         size_list = ', '.join(f'{s}' for s in self.sizes)
+        if len(self.parameters) > 0:
+            param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
+            param_decls = newline.join(f'{p.tpe} {p.name};' for p in self.parameters) + newline
+        else:
+            param_list = ''
+            param_decls = ''
 
         return \
             f'template<typename tpe>{newline}' + \
             f'inline int realMain(int argc, char *argv[]) {"{"}{newline}' + \
             f'char* tpeName;{newline}' + \
             f'size_t {size_list}, nItWarmUp, nIt;{newline}' + \
-            f'parseCLA_{len(self.sizes)}d(argc, argv, tpeName, {size_list}, nItWarmUp, nIt);{newline}'
+            param_decls + \
+            f'parseCLA_{len(self.sizes)}d(argc, argv, tpeName, {size_list}{param_list}, nItWarmUp, nIt);{newline}'
 
     def mainAllocateAndInit(self):
         size_list = ', '.join(f'{s}' for s in self.sizes)

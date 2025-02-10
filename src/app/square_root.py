@@ -35,7 +35,8 @@ class SquareRoot:
                                     Assignment(src.access(iterators), f'(tpe)1'),
                                     Assignment(dest.access(iterators), f'(tpe)0')]),
                                 num_flop=0),
-                backend.generate_check_kernel(cls, fields, sizes, it_space, '(tpe)1', src.access(iterators))
+                backend.generate_check_kernel(cls, fields, sizes, it_space, '(tpe)1', src.access(iterators)),
+                backend.generate_parse_kernel(cls, sizes, [])
             ]
 
         else:
@@ -51,7 +52,7 @@ class SquareRoot:
                 PseudoKernel(f'std::swap({src.d_name}, {dest.d_name});')
             ]
 
-        return backend.Application(backend, cls.name, sizes, kernels)
+        return backend.Application(backend, cls.name, sizes, [], kernels)
 
     @classmethod
     def sizes_to_bench(cls):

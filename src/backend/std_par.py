@@ -14,8 +14,8 @@ class StdPar(Base):
 
 
     class Kernel(AbstractKernel):
-        def __init__(self, name, variables, reads, writes, it_space, body, num_flop):
-            super().__init__(name, variables, reads, writes, it_space, body, num_flop)
+        def __init__(self, name, variables, reads, writes, it_space, body, has_tpe_template=True, num_flop=0):
+            super().__init__(name, variables, reads, writes, it_space, body, has_tpe_template, num_flop)
 
         def launch(self):
             parameters = ', '.join(
@@ -29,7 +29,7 @@ class StdPar(Base):
             parameters = ', '.join(
                 [f'const {f.tpe} * const __restrict__ {f.name}' for f in self.reads if f not in self.writes]
                 + [f'{f.tpe} *__restrict__ {f.name}' for f in self.writes]
-                + [f'const {v.tpe} {v.name}' for v in self.variables])
+                + [f'{v.tpe} {v.name}' for v in self.variables])
 
             it_field = (self.reads + self.writes)[0]
 
@@ -66,7 +66,7 @@ class StdPar(Base):
                 f'{"}"});'
 
             return \
-                f'template<typename tpe>{newline}' + \
+                (f'template<typename tpe>{newline}' if self.has_tpe_template else '') + \
                 f'inline void {self.fct_name}({parameters}) {"{"}{newline}' + \
                 f'std::for_each(std::execution::par_unseq, {it_field.name}, {it_field.name} + {it_field.totalSize()}, //{newline}' + \
                 lambda_fct + newline + \
@@ -74,8 +74,8 @@ class StdPar(Base):
 
 
     class Application(AbstractApplication):
-        def __init__(self, backend, app, sizes, kernels):
-            super().__init__(backend, app, sizes, kernels)
+        def __init__(self, backend, app, sizes, parameters, kernels):
+            super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
             return f'#include <algorithm>{newline}' + \

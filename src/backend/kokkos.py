@@ -74,8 +74,8 @@ class Kokkos(Backend):
 
 
     class Kernel(AbstractKernel):
-        def __init__(self, name, variables, reads, writes, it_space, body, num_flop):
-            super().__init__(name, variables, reads, writes, it_space, body, num_flop)
+        def __init__(self, name, variables, reads, writes, it_space, body, has_tpe_template=True, num_flop=0):
+            super().__init__(name, variables, reads, writes, it_space, body, has_tpe_template, num_flop)
 
         def launch(self):
             parameters = ', '.join(
@@ -89,7 +89,7 @@ class Kokkos(Backend):
             parameters = ', '.join(
                 [f'const Kokkos::View<{f.tpe} {"*" * len(f.sizes)}> &{f.name}' for f in self.reads if f not in self.writes]
                 + [f'Kokkos::View<{f.tpe} {"*" * len(f.sizes)}> &{f.name}' for f in self.writes]
-                + [f'const {v.tpe} {v.name}' for v in self.variables])
+                + [f'{v.tpe} {v.name}' for v in self.variables])
 
             dims = len(self.it_space)
             if 1 == dims:
@@ -108,15 +108,15 @@ class Kokkos(Backend):
                 f'{"}"});'
 
             return \
-                f'template<typename tpe>{newline}' + \
+                (f'template<typename tpe>{newline}' if self.has_tpe_template else '') + \
                 f'inline void {self.fct_name}({parameters}) {"{"}{newline}' + \
                 parallel_for + newline + \
                 f'{"}"}{newline}'
 
 
     class Application(AbstractApplication):
-        def __init__(self, backend, app, sizes, kernels):
-            super().__init__(backend, app, sizes, kernels)
+        def __init__(self, backend, app, sizes, parameters, kernels):
+            super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
             size_list = ', '.join(f'{s}' for s in self.sizes)

@@ -68,6 +68,7 @@ class Stencil3D:
             kernels = [
                 backend.Kernel(f'init{cls.name_as_postfix}', sizes, [], fields, full_it_space, init, num_flop=0),
                 backend.Kernel(f'checkSolution{cls.name_as_postfix}', [*sizes, Variable('nIt', 'size_t')], fields, [], [], check, num_flop=0),
+                backend.generate_parse_kernel(cls, sizes, [])
             ]
 
         else:
@@ -84,7 +85,7 @@ class Stencil3D:
                 PseudoKernel(f'std::swap({u.d_name}, {uNew.d_name});')
             ]
 
-        return backend.Application(backend, cls.name, sizes, kernels)
+        return backend.Application(backend, cls.name, sizes, [], kernels)
 
     @classmethod
     def sizes_to_bench(cls):
