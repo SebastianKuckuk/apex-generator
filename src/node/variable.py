@@ -2,8 +2,8 @@ import sympy as sp
 
 
 class Variable(sp.Symbol):
-    def __new__(cls, name, description=''):
-        obj = sp.Symbol.__new__(cls, name)
+    def __new__(cls, name, tpe, description=''):
+        obj = sp.Symbol.__new__(cls, f'{name}_{tpe}')
         obj.description = description
         return obj
 
