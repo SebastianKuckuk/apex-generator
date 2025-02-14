@@ -13,8 +13,8 @@ from backends import get_default_backends
 from backend.backend import Backend
 
 
-def run(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
-    print(f'Running {app.group}/{app.name} ...')
+def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
+    print(f'Benchmarking {app.group}/{app.name} ...')
 
     # set up output folder and create it if necessary
     output_folder = Backend.default_measurement_dir(app)
@@ -124,41 +124,46 @@ def run(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
 
     df.to_excel(xlsx_file)
 
+def eval_gpu():
+    # evaluate GPU running on
+    if cla_machine.startswith('nvidia'):
+        out = subprocess.check_output(['nvidia-smi', '-L'])
+        out = out.decode('utf-8').strip()
+        gpu = re.findall(r'GPU 0: (.*) \(UUID: GPU', out)[0]
+        gpu_for_filename = gpu.replace(' ', '-').replace('NVIDIA-', '').replace('GeForce-', '')
+        out = subprocess.check_output(['nvidia-smi', '--query-gpu=compute_cap', '--format=csv,noheader'])
+        out = out.decode('utf-8').strip()
+        gpu_cc = float(out)
 
-if len(sys.argv) < 4:
-    print(f'Usage: python {sys.argv[0]} machine app backend')
-    exit(1)
+        print(f'Running on GPU {gpu} ({gpu_for_filename}), compute capability {gpu_cc}')
 
-cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
-cla_app = sys.argv[2]      # 'all'
-cla_backend = sys.argv[3]  # 'all'
+    elif cla_machine.startswith('amd'):
+        out = subprocess.check_output(['rocm-smi', '-d', '0', '--showproductname'])
+        out = out.decode('utf-8').strip()
+        gpu = re.findall(r'Card Series: (.*)\n', out)[0].strip()
+        gpu_for_filename = gpu.replace(' ', '-').replace('AMD-', '').replace('Instinct-', '').replace('-OAM', '')
+        gfx = re.findall(r'GFX Version: (.*)\n', out)[0].strip()
 
-apps = get_default_apps()
-backends = get_default_backends(cla_machine)
+        print(f'Running on GPU {gpu} ({gpu_for_filename}), gfx {gfx}')
 
-# evaluate GPU running on
-if cla_machine.startswith('nvidia'):
-    out = subprocess.check_output(['nvidia-smi', '-L'])
-    out = out.decode('utf-8').strip()
-    gpu = re.findall(r'GPU 0: (.*) \(UUID: GPU', out)[0]
-    gpu_for_filename = gpu.replace(' ', '-').replace('NVIDIA-', '').replace('GeForce-', '')
-    out = subprocess.check_output(['nvidia-smi', '--query-gpu=compute_cap', '--format=csv,noheader'])
-    out = out.decode('utf-8').strip()
-    gpu_cc = float(out)
+    else:
+        gpu_for_filename = 'none'
 
-    print(f'Running on GPU {gpu} ({gpu_for_filename}), compute capability {gpu_cc}')
+    return gpu_for_filename
 
-elif cla_machine.startswith('amd'):
-    out = subprocess.check_output(['rocm-smi', '-d', '0', '--showproductname'])
-    out = out.decode('utf-8').strip()
-    gpu = re.findall(r'Card Series: (.*)\n', out)[0].strip()
-    gpu_for_filename = gpu.replace(' ', '-').replace('AMD-', '').replace('Instinct-', '').replace('-OAM', '')
-    gfx = re.findall(r'GFX Version: (.*)\n', out)[0].strip()
+if __name__ == '__main__':
+    if len(sys.argv) < 4:
+        print(f'Usage: python {sys.argv[0]} machine app backend')
+        exit(1)
 
-    print(f'Running on GPU {gpu} ({gpu_for_filename}), gfx {gfx}')
+    cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
+    cla_app = sys.argv[2]      # 'all'
+    cla_backend = sys.argv[3]  # 'all'
 
-else:
-    gpu_for_filename = 'none'
+    apps = get_default_apps()
+    backends = get_default_backends(cla_machine)
 
-for app in apps[cla_app]:
-    run(app, backends[cla_backend], gpu_for_filename)
+    gpu_for_filename = eval_gpu()
+
+    for app in apps[cla_app]:
+        benchmark(app, backends[cla_backend], gpu_for_filename)
