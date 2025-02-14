@@ -33,7 +33,7 @@ class Stream:
                                     Assignment(src.access(iterators), f'(tpe){iterators[0]}'),
                                     Assignment(dest.access(iterators), f'(tpe)0')]),
                                 num_flop=0),
-                backend.generate_check_kernel(cls, fields, sizes, it_space, iterators[0] + Variable('nIt', 'size_t'), src.access(iterators)),
+                backend.generate_check_kernel(cls, fields, sizes, [], it_space, iterators[0] + Variable('nIt', 'size_t'), src.access(iterators)),
                 backend.generate_parse_kernel(cls, sizes, [])
             ]
 

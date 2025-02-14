@@ -35,7 +35,7 @@ class SquareRoot:
                                     Assignment(src.access(iterators), f'(tpe)1'),
                                     Assignment(dest.access(iterators), f'(tpe)0')]),
                                 num_flop=0),
-                backend.generate_check_kernel(cls, fields, sizes, it_space, '(tpe)1', src.access(iterators)),
+                backend.generate_check_kernel(cls, fields, sizes, [], it_space, '(tpe)1', src.access(iterators)),
                 backend.generate_parse_kernel(cls, sizes, [])
             ]
 

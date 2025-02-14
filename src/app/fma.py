@@ -28,7 +28,7 @@ class FMA:
         if backend == UtilHeader:
             kernels = [
                 backend.Kernel(f'init{cls.name_as_postfix}', sizes, [], [data], it_space, Assignment(data.access(iterators), '(tpe)1'), num_flop=0),
-                backend.generate_check_kernel(cls, [data], sizes, it_space, '(tpe)1', data.access(iterators)),
+                backend.generate_check_kernel(cls, [data], sizes, [], it_space, '(tpe)1', data.access(iterators)),
                 backend.generate_parse_kernel(cls, sizes, [])
             ]
 

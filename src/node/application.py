@@ -117,9 +117,14 @@ class AbstractApplication:
         size_list = ', '.join(f'{s}' for s in self.sizes)
         field_list = ', '.join(f.name for f in self.fields)
 
+        if len(self.parameters) > 0:
+            param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
+        else:
+            param_list = ''
+
         return self.toHostCopies() + \
             f'// check solution{newline}' + \
-            f'checkSolution{self.app.title().replace("-", "")}({field_list}, {size_list}, nIt + nItWarmUp);{newline}' + \
+            f'checkSolution{self.app.title().replace("-", "")}({field_list}, {size_list}, nIt + nItWarmUp{param_list});{newline}' + \
             newline + \
             self.fieldFrees() + newline + \
             newline + \

@@ -14,13 +14,13 @@ class UtilHeader(Base):
     file_extension = 'h'
 
     @classmethod
-    def generate_check_kernel(cls, app, fields, sizes, it_space, expected, to_compare):
+    def generate_check_kernel(cls, app, fields, sizes, parameters, it_space, expected, to_compare):
         check = f'''\
             if ((tpe)({expected}) != {to_compare}) {'{'}
             std::cerr << "Init check failed for element " << {' << ", " << '.join(str(i[0]) for i in it_space)} << " (expected " << {expected} << " but got " << {to_compare} << ")" << std::endl;
             return;
         {'}'}'''
-        return cls.Kernel(f'checkSolution{app.name_as_postfix}', [*sizes, Variable('nIt', 'size_t')], fields, [], it_space, check)
+        return cls.Kernel(f'checkSolution{app.name_as_postfix}', [*sizes, Variable('nIt', 'size_t'), *parameters], fields, [], it_space, check)
 
     @classmethod
     def generate_parse_kernel(cls, app, sizes, parameters):
