@@ -28,6 +28,7 @@ def compile(cla_machine, cla_app, cla_backend, cla_parallel, apps, backends):
     print('Finished compiling')
     print()
 
+
 if __name__ == '__main__':
     if len(sys.argv) < 5:
         print(f'Usage: python {sys.argv[0]} machine app backend parallel')
@@ -41,3 +42,5 @@ if __name__ == '__main__':
 
     apps = get_default_apps()
     backends = get_default_backends(cla_machine)
+
+    compile(cla_machine, cla_app, cla_backend, cla_parallel, apps, backends)
