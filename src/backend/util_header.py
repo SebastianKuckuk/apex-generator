@@ -17,7 +17,7 @@ class UtilHeader(Base):
     def generate_check_kernel(cls, app, fields, sizes, parameters, it_space, expected, to_compare):
         check = f'''\
             if ((tpe)({expected}) != {to_compare}) {'{'}
-            std::cerr << "Init check failed for element " << {' << ", " << '.join(str(i[0]) for i in it_space)} << " (expected " << {expected} << " but got " << {to_compare} << ")" << std::endl;
+            std::cerr << "{app.name_as_postfix} check failed for element " << {' << ", " << '.join(str(i[0]) for i in it_space)} << " (expected " << {expected} << " but got " << {to_compare} << ")" << std::endl;
             return;
         {'}'}'''
         return cls.Kernel(f'checkSolution{app.name_as_postfix}', [*sizes, Variable('nIt', 'size_t'), *parameters], fields, [], it_space, check)
