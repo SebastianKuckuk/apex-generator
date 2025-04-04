@@ -12,6 +12,7 @@ class Stencil1D:
     name_as_postfix = name.title().replace("-", "")
     group = 'benchmark'
     metric = 'bandwidth'
+    additional_parameters = []
     default_parameters = ['double', 64 * 1024 * 1024, 2, 10]
     dimensionality = 1
 
@@ -77,3 +78,7 @@ class Stencil1D:
     @classmethod
     def sizes_to_bench(cls):
         return sorted([*{*[int(pow(2, 0.1 * i)) for i in range(1_0, 30_0 + 1, 1)]}])
+
+    @classmethod
+    def params_to_bench(cls):
+        return [[]]

@@ -12,9 +12,10 @@ class FMA:
     group = 'benchmark'
     metric = 'flops'
     default_type = 'float'
+    additional_parameters = []
     default_parameters = ['double', 64, 1, 2]
     # default_parameters = ['double', 1024 * 1024, 1, 2]
-    num_rep = 1024 * 1024
+    num_rep = 64 * 1024
     dimensionality = 1
 
     @classmethod
@@ -56,4 +57,8 @@ class FMA:
 
     @classmethod
     def sizes_to_bench(cls):
-        return sorted([*{*[int(pow(2, 0.1 * i)) for i in range(1_0, 25_0 + 1, 1)]}])
+        return sorted([*{*[int(pow(2, 0.1 * i)) for i in range(1_0, 20_0 + 1, 1)]}])
+
+    @classmethod
+    def params_to_bench(cls):
+        return [[]]

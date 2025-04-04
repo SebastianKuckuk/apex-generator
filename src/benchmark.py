@@ -22,7 +22,7 @@ def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
 
     # target output file and read it if already existent
     output_file = output_folder / f'{app.name}.csv'
-    columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', 'time', 'mlups', 'bandwidth', 'compute']
+    columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
     index = 'index'
 
     if output_file.is_file():
@@ -34,6 +34,7 @@ def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
     # prepare samples
     # sizes_to_bench = [64, 1024] # dummy test input for debugging
     sizes_to_bench = app.sizes_to_bench()
+    params_to_bench = app.params_to_bench()
 
     types = ['double']
 
@@ -59,58 +60,71 @@ def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
 
         for tpe in types:
             print(f'  ... for {tpe} ...')
-            for (i, size) in enumerate(sizes_to_bench):
-                print(f'\r   ... with {backend.name.ljust(30)} --- {round(100 * i / len(sizes_to_bench))}%', end='')
 
-                num_cells = size**app.dimensionality
-                n_warm = 2
-                n_it = 2**(min(10, 1 + max(0, 46 - 2 * int(math.log2(num_cells)))))
+            for params in params_to_bench:
+                print(f'   ... with {params} ...')
 
-                not_measured = df.loc[
-                    (df['gpu'] == gpu_for_filename) &
-                    (df['backend'] == backend.name) &
-                    (df['nx'] == size) &
-                    (df['ny'] == size if app.dimensionality > 1 else 1) &
-                    (df['nz'] == size if app.dimensionality > 2 else 1) &
-                    (df['nIt'] == n_it) &
-                    (df['nWarmUp'] == n_warm) &
-                    (df['type'] == tpe)
-                ].empty
+                for (i, size) in enumerate(sizes_to_bench):
+                    print(f'\r   ... with {backend.name.ljust(30)} --- {round(100 * i / len(sizes_to_bench))}%', end='')
 
-                if not_measured:
-                    local_results = []
-                    for _ in range(num_repeat):
-                        out = subprocess.check_output([backend.default_bin_dir(app) / backend.default_bin_file(app),
-                                                       tpe, *[f'{size}' for _ in range(app.dimensionality)], f'{n_warm}', f'{n_it}'],
-                                                      env=env)
-                        out = out.decode("utf-8")
+                    num_cells = size**app.dimensionality
+                    n_warm = 2
+                    n_it = 2**(min(10, 1 + max(0, 46 - 2 * int(math.log2(num_cells)))))
 
-                        elapsed = float(re.findall(r'elapsed time: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) ms', out)[0])
-                        mlups = float(re.findall(r'MLUP/s: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+)\n', out)[0])
-                        bandwidth = float(re.findall(r'bandwidth: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) GB/s', out)[0])
-                        compute = float(re.findall(r'compute: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) GFLOP/s', out)[0])
+                    if 'flops' == app.metric: # overwrite n_warm and n_it for compute heavy benchmarks that feature hot inner loop
+                        n_warm = 2
+                        n_it = 8
 
-                        local_results.append([elapsed, mlups, bandwidth, compute])
+                    not_measured = df.loc[
+                        (df['gpu'] == gpu_for_filename) &
+                        (df['backend'] == backend.name) &
+                        (df['nx'] == size) &
+                        (df['ny'] == size if app.dimensionality > 1 else 1) &
+                        (df['nz'] == size if app.dimensionality > 2 else 1) &
+                        (df['nIt'] == n_it) &
+                        (df['nWarmUp'] == n_warm) &
+                        (df['type'] == tpe)
+                    ]
+                    for (param_name, param_value) in zip(app.additional_parameters, params):
+                        not_measured = not_measured.loc[(not_measured[param_name] == param_value)]
+                    not_measured = not_measured.empty
 
-                    local_results.sort(key=lambda m: m[0])
+                    if not_measured:
+                        local_results = []
+                        for _ in range(num_repeat):
+                            out = subprocess.check_output([backend.default_bin_dir(app) / backend.default_bin_file(app),
+                                                        tpe, *[f'{size}' for _ in range(app.dimensionality)],
+                                                        *[f'{param}' for param in params], f'{n_warm}', f'{n_it}'],
+                                                        env=env)
+                            out = out.decode("utf-8")
 
-                    measurements.append({
-                        'gpu': gpu_for_filename,
-                        'backend': backend.name,
-                        'nx': size,
-                        'ny': size if app.dimensionality > 1 else 1,
-                        'nz': size if app.dimensionality > 2 else 1,
-                        'nIt': n_it,
-                        'nWarmUp': n_warm,
-                        'type': tpe,
-                        'time': local_results[0][0],
-                        'mlups': local_results[0][1],
-                        'bandwidth': local_results[0][2],
-                        'compute': local_results[0][3]
-                    })
+                            elapsed = float(re.findall(r'elapsed time: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) ms', out)[0])
+                            mlups = float(re.findall(r'MLUP/s: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+)\n', out)[0])
+                            bandwidth = float(re.findall(r'bandwidth: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) GB/s', out)[0])
+                            compute = float(re.findall(r'compute: *(\d+(?:\.\d+)?|\d+(?:\.\d+)?e-\d+) GFLOP/s', out)[0])
 
-                    if time.time() - last_save >= 30 and len(measurements) > 0:
-                        save_df()
+                            local_results.append([elapsed, mlups, bandwidth, compute])
+
+                        local_results.sort(key=lambda m: m[0])
+
+                        measurements.append({
+                            'gpu': gpu_for_filename,
+                            'backend': backend.name,
+                            'nx': size,
+                            'ny': size if app.dimensionality > 1 else 1,
+                            'nz': size if app.dimensionality > 2 else 1,
+                            'nIt': n_it,
+                            'nWarmUp': n_warm,
+                            'type': tpe,
+                            **dict(zip(app.additional_parameters, params)),
+                            'time': local_results[0][0],
+                            'mlups': local_results[0][1],
+                            'bandwidth': local_results[0][2],
+                            'compute': local_results[0][3]
+                        })
+
+                        if time.time() - last_save >= 120 and len(measurements) > 0:
+                            save_df()
 
         print(f'\r   ... with {backend.name.ljust(30)} --- done')
 
