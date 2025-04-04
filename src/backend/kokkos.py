@@ -122,6 +122,11 @@ class Kokkos(Backend):
             size_list = ', '.join(f'{s}' for s in self.sizes)
             field_list = ', '.join(f'{f.h_name}.data()' for f in self.fields)
 
+            if len(self.parameters) > 0:
+                param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
+            else:
+                param_list = ''
+
             return f'#include <Kokkos_Core.hpp>{newline}' + \
                 newline + \
                 f'#include "{self.app}-util.h"{newline}' + \
@@ -138,14 +143,14 @@ class Kokkos(Backend):
                 newline.join(f.h_allocate() for f in self.fields) + newline + \
                 newline + \
                 f'// init{newline}' + \
-                f'init{self.app.title().replace("-", "")}({field_list}, {size_list});{newline}' + \
+                f'init{self.app.title().replace("-", "")}({field_list}, {size_list}{param_list});{newline}' + \
                 self.toDeviceCopies() + \
                 newline + \
                 self.mainMiddle() + \
                 newline + \
                 self.toHostCopies() + \
                 f'// check solution{newline}' + \
-                f'checkSolution{self.app.title().replace("-", "")}({field_list}, {size_list}, nIt + nItWarmUp);{newline}' + \
+                f'checkSolution{self.app.title().replace("-", "")}({field_list}, {size_list}, nIt + nItWarmUp{param_list});{newline}' + \
                 f'{"}"}{newline}' + \
                 f'Kokkos::finalize();{newline}' + \
                 newline + \

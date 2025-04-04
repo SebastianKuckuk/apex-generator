@@ -81,11 +81,16 @@ class AbstractApplication:
         size_list = ', '.join(f'{s}' for s in self.sizes)
         field_list = ', '.join(f.name for f in self.fields)
 
+        if len(self.parameters) > 0:
+            param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
+        else:
+            param_list = ''
+
         return \
             self.fieldAllocates() + newline + \
             newline + \
             f'// init{newline}' + \
-            f'init{self.app.title().replace("-", "")}({field_list}, {size_list});{newline}' + \
+            f'init{self.app.title().replace("-", "")}({field_list}, {size_list}{param_list});{newline}' + \
             self.toDeviceCopies()
 
     def mainMiddle(self):
