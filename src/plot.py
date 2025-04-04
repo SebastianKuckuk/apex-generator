@@ -16,14 +16,15 @@ def plot(app, show_plot=False):
 
     # configure measurement data file and read it
     data_file = data_folder / f'{app.name}.csv'
-    columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', 'time', 'mlups', 'bandwidth', 'compute']
+    columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
     index = 'index'
 
     df = pd.read_csv(data_file, header=0, names=columns, index_col=index)
 
     # add auxiliary columns
     df['numCells'] = df['nx'] * df['ny'] * df['nz']
-    df['version'] = df[['backend', 'gpu']].apply(lambda x: f'{x[0]} ({x[1]})', axis=1)
+    df['version'] = df[['backend', 'gpu', *app.additional_parameters]].apply(
+        lambda x: f'{x[0]} ({x[1]})' + (' - ' + ', '.join([f'{p}' for p in x[2:]]) if len(x) > 2 else ''), axis=1)
 
     # filter by gpu
     gpus = df['gpu'].unique()
