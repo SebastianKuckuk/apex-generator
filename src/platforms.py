@@ -30,8 +30,8 @@ def platform(machine, backend):
             compiler = 'icpx'
             flags = ['-O3', '-march=native', '-std=c++17', '-fsycl', '-fsycl-targets=nvptx64-nvidia-cuda', '-Xsycl-target-backend']
             flags.append({
-                'nvidia.alex.a100': '--sycl-gpu-arch=sm_80',
-                'nvidia.alex.a40': '--sycl-gpu-arch=sm_86'
+                'nvidia.alex.a100': '--cuda-gpu-arch=sm_80',
+                'nvidia.alex.a40': '--cuda-gpu-arch=sm_86'
             }[machine])
 
     elif backend.startswith('OpenACC'):
@@ -67,8 +67,8 @@ def platform(machine, backend):
         # default for all machines
         compiler = 'g++'
         flags = ['-O3', '-march=native', '-std=c++17',
-                 f'-I{os.environ["HOME"]}/kokkos/install-serial/include',
-                 f'-L{os.environ["HOME"]}/kokkos/install-serial/lib64']
+                 f'-I{os.environ["WORK"]}/kokkos/install-serial/include',
+                 f'-L{os.environ["WORK"]}/kokkos/install-serial/lib64']
         if 'Kokkos Host OpenMP' == backend:
             flags.append('-fopenmp')
         libs = ['-lkokkoscore', '-ldl']
@@ -77,20 +77,20 @@ def platform(machine, backend):
         # default for all machines
         compiler = 'g++'
         flags = ['-O3', '-march=native', '-std=c++17', '-fopenmp',
-                 f'-I{os.environ["HOME"]}/kokkos/install-omp/include',
-                 f'-L{os.environ["HOME"]}/kokkos/install-omp/lib64']
+                 f'-I{os.environ["WORK"]}/kokkos/install-omp/include',
+                 f'-L{os.environ["WORK"]}/kokkos/install-omp/lib64']
         libs = ['-lkokkoscore', '-ldl']
 
     elif 'Kokkos CUDA' == backend:
         if machine.startswith('nvidia'):
-            compiler = f'{os.environ["HOME"]}/kokkos/install-cuda/bin/nvcc_wrapper'
+            compiler = f'{os.environ["WORK"]}/kokkos/install-cuda/bin/nvcc_wrapper'
             flags = ['-O3', '-march=native', '-std=c++17',
                      {'nvidia.alex.a100': '-arch=sm_80',
                       'nvidia.alex.a40': '-arch=sm_86'
                       }[machine],
                      '--expt-extended-lambda', '--expt-relaxed-constexpr',
-                     f'-I{os.environ["HOME"]}/kokkos/install-cuda/include',
-                     f'-L{os.environ["HOME"]}/kokkos/install-cuda/lib64']
-            libs = ['-lkokkoscore', '-ldl']
+                     f'-I{os.environ["WORK"]}/kokkos/install-cuda/include',
+                     f'-L{os.environ["WORK"]}/kokkos/install-cuda/lib64']
+            libs = ['-lkokkoscore', '-ldl', '-lcuda']
 
     return compiler, flags, libs
