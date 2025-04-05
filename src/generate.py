@@ -13,18 +13,18 @@ def generate(cla_machine, cla_app, cla_backend, apps, backends):
 
         print(f'  ... for {UtilHeader.__name__}')
 
-        UtilHeader.print_code_file(app, app.compose_app(UtilHeader).generate())
+        UtilHeader.print_code_file(cla_machine, app, app.compose_app(UtilHeader).generate())
 
         print(f'  ... for {Makefile.__name__}')
 
-        Makefile.print_code_file(app, Makefile.generate(cla_machine, app, backends['all']), format=False)
+        Makefile.print_code_file(cla_machine, app, Makefile.generate(cla_machine, app, backends['all']), format=False)
 
         for backend in backends[cla_backend]:
             print(f'  ... for {backend.__name__}')
 
             code = app.compose_app(backend).generate()
 
-            backend.print_code_file(app, code)
+            backend.print_code_file(cla_machine, app, code)
 
     print('Finished generating')
     print()

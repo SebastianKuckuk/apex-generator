@@ -16,7 +16,7 @@ class Kokkos(Backend):
     file_extension = 'cpp'
 
     @classmethod
-    def default_code_file(cls, app):
+    def default_code_file(cls, machine, app):
         return f'{app.name}-kokkos.{cls.file_extension}'
 
     @staticmethod

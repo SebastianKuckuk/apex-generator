@@ -136,7 +136,7 @@ class SyclBuffer(Sycl):
         def generate(self):
             return f'#include "{self.app}-util.h"{newline}' + \
                 newline + \
-                f'#include "../../sycl-util.h"{newline}' + \
+                f'#include "../../../sycl-util.h"{newline}' + \
                 2 * newline + \
                 self.kernelDecls() + \
                 2 * newline + \
@@ -229,7 +229,7 @@ class SyclNoBuffer(Sycl):
         def generate(self):
             return f'#include "{self.app}-util.h"{newline}' + \
                 newline + \
-                f'#include "../../sycl-util.h"{newline}' + \
+                f'#include "../../../sycl-util.h"{newline}' + \
                 2 * newline + \
                 self.kernelDecls() + \
                 2 * newline + \

@@ -7,15 +7,15 @@ from apps import get_default_apps
 from backend.backend import Backend
 
 
-def plot(app, show_plot=False):
+def plot(machine, app, show_plot=False):
     print(f'Running {app.group}/{app.name} ...')
 
     # configure the folder containing the measurements
-    data_folder = Backend.default_measurement_dir(app)
+    data_folder = Backend.default_measurement_dir(machine, app)
     data_folder.mkdir(parents=True, exist_ok=True)
 
     # configure measurement data file and read it
-    data_file = data_folder / f'{app.name}.csv'
+    data_file = data_folder / Backend.default_measurement_file(machine, app)
     columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
     index = 'index'
 
@@ -67,13 +67,14 @@ def plot(app, show_plot=False):
         plt.savefig(data_folder / f'{app.name}-{gpu.replace(" ", "")}.pdf')
 
 
-if len(sys.argv) < 2:
-    print(f'Usage: python {sys.argv[0]} app')
+if len(sys.argv) < 3:
+    print(f'Usage: python {sys.argv[0]} machine app')
     exit(1)
 
-cla_app = sys.argv[1]      # 'all'
+cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
+cla_app = sys.argv[2]      # 'all'
 
 apps = get_default_apps()
 
 for app in apps[cla_app]:
-    plot(app)
+    plot(cla_machine, app)

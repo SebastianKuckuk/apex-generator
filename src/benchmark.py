@@ -13,15 +13,15 @@ from backends import get_default_backends
 from backend.backend import Backend
 
 
-def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
+def benchmark(machine, app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
     print(f'Benchmarking {app.group}/{app.name} ...')
 
     # set up output folder and create it if necessary
-    output_folder = Backend.default_measurement_dir(app)
+    output_folder = Backend.default_measurement_dir(machine, app)
     output_folder.mkdir(parents=True, exist_ok=True)
 
     # target output file and read it if already existent
-    output_file = output_folder / f'{app.name}.csv'
+    output_file = output_folder / Backend.default_measurement_file(machine, app)
     columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
     index = 'index'
 
@@ -92,7 +92,7 @@ def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
                     if not_measured:
                         local_results = []
                         for _ in range(num_repeat):
-                            out = subprocess.check_output([backend.default_bin_dir(app) / backend.default_bin_file(app),
+                            out = subprocess.check_output([backend.default_bin_dir(machine, app) / backend.default_bin_file(machine, app),
                                                         tpe, *[f'{size}' for _ in range(app.dimensionality)],
                                                         *[f'{param}' for param in params], f'{n_warm}', f'{n_it}'],
                                                         env=env)
@@ -127,6 +127,9 @@ def benchmark(app, backends, gpu_for_filename, num_repeat=3, show_plot=False):
                             save_df()
 
         print(f'\r   ... with {backend.name.ljust(30)} --- done')
+
+        df.sort_values(['gpu', 'backend', 'type', *app.additional_parameters, 'nz', 'ny', 'nx'], ascending=True, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
         save_df()
 
@@ -180,4 +183,4 @@ if __name__ == '__main__':
     gpu_for_filename = eval_gpu()
 
     for app in apps[cla_app]:
-        benchmark(app, backends[cla_backend], gpu_for_filename)
+        benchmark(cla_machine, app, backends[cla_backend], gpu_for_filename)

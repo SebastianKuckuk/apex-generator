@@ -69,7 +69,7 @@ class Cuda(Backend):
 
             return f'#include "{self.app}-util.h"{newline}' + \
                 newline + \
-                f'#include "../../cuda-util.h"{newline}' + \
+                f'#include "../../../cuda-util.h"{newline}' + \
                 2 * newline + \
                 self.kernelDecls() + \
                 2 * newline + \

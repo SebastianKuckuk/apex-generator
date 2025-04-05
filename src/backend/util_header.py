@@ -61,6 +61,6 @@ class UtilHeader(Base):
             super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
-            return f'#include "../../util.h"{newline}' + \
+            return f'#include "../../../util.h"{newline}' + \
                 2 * newline + \
                 self.kernelDecls()

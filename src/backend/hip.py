@@ -69,7 +69,7 @@ class Hip(Backend):
 
             return f'#include "{self.app}-util.h"{newline}' + \
                 newline + \
-                f'#include "../../hip-util.h"{newline}' + \
+                f'#include "../../../hip-util.h"{newline}' + \
                 2 * newline + \
                 self.kernelDecls() + \
                 2 * newline + \

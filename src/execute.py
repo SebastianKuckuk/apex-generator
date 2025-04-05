@@ -12,7 +12,7 @@ def execute(cla_machine, cla_app, cla_backend, apps, backends):
         for backend in backends[cla_backend]:
             print(f'  ... for {backend.__name__}')
 
-            backend.exec_bin(app)
+            backend.exec_bin(cla_machine, app)
 
     print('Finished executing')
     print()
