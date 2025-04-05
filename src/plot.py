@@ -23,8 +23,8 @@ def plot(machine, app, show_plot=False):
 
     # add auxiliary columns
     df['numCells'] = df['nx'] * df['ny'] * df['nz']
-    df['version'] = df[['backend', 'gpu', *app.additional_parameters]].apply(
-        lambda x: f'{x[0]} ({x[1]})' + (' - ' + ', '.join([f'{p}' for p in x[2:]]) if len(x) > 2 else ''), axis=1)
+    df['version'] = df[['backend', 'gpu', 'type', *app.additional_parameters]].apply(
+        lambda x: f'{x[0]} ({x[1]}, {x[2]})' + (' - ' + ', '.join([f'{p}' for p in x[3:]]) if len(x) > 3 else ''), axis=1)
 
     # filter by gpu
     gpus = df['gpu'].unique()
