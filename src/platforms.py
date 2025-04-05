@@ -3,7 +3,7 @@ import os
 
 def platform(machine, backend):
     # Supported machines:
-    #   nvidia.alex.a40, nvidia.alex.a100,
+    #   nvidia.alex.a40, nvidia.alex.a100, nvidia.helma.h100
     #   amd.testfront.aquavan
 
     compiler, flags, libs = None, None, None
@@ -30,6 +30,7 @@ def platform(machine, backend):
             compiler = 'icpx'
             flags = ['-O3', '-march=native', '-std=c++17', '-fsycl', '-fsycl-targets=nvptx64-nvidia-cuda', '-Xsycl-target-backend']
             flags.append({
+                'nvidia.helma.h100': '--cuda-gpu-arch=sm_90',
                 'nvidia.alex.a100': '--cuda-gpu-arch=sm_80',
                 'nvidia.alex.a40': '--cuda-gpu-arch=sm_86'
             }[machine])
@@ -85,7 +86,8 @@ def platform(machine, backend):
         if machine.startswith('nvidia'):
             compiler = f'{os.environ["WORK"]}/kokkos/install-cuda/bin/nvcc_wrapper'
             flags = ['-O3', '-march=native', '-std=c++17',
-                     {'nvidia.alex.a100': '-arch=sm_80',
+                     {'nvidia.helma.h100': '-arch=sm_90',
+                      'nvidia.alex.a100': '-arch=sm_80',
                       'nvidia.alex.a40': '-arch=sm_86'
                       }[machine],
                      '--expt-extended-lambda', '--expt-relaxed-constexpr',
