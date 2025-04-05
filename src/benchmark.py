@@ -141,9 +141,9 @@ def benchmark(machine, app, backends, gpu_for_filename, num_repeat=3, show_plot=
 
     df.to_excel(xlsx_file)
 
-def eval_gpu():
+def eval_gpu(machine):
     # evaluate GPU running on
-    if cla_machine.startswith('nvidia'):
+    if machine.startswith('nvidia'):
         out = subprocess.check_output(['nvidia-smi', '-L'])
         out = out.decode('utf-8').strip()
         gpu = re.findall(r'GPU 0: (.*) \(UUID: GPU', out)[0]
@@ -154,7 +154,7 @@ def eval_gpu():
 
         print(f'Running on GPU {gpu} ({gpu_for_filename}), compute capability {gpu_cc}')
 
-    elif cla_machine.startswith('amd'):
+    elif machine.startswith('amd'):
         out = subprocess.check_output(['rocm-smi', '-d', '0', '--showproductname'])
         out = out.decode('utf-8').strip()
         gpu = re.findall(r'Card Series: (.*)\n', out)[0].strip()
@@ -173,14 +173,13 @@ if __name__ == '__main__':
         print(f'Usage: python {sys.argv[0]} machine app backend')
         exit(1)
 
-    cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
-    cla_app = sys.argv[2]      # 'all'
-    cla_backend = sys.argv[3]  # 'all'
+    for cla_machine in sys.argv[1].split(','):          # 'nvidia.alex.a40'
+        gpu_for_filename = eval_gpu(cla_machine)
 
-    apps = get_default_apps()
-    backends = get_default_backends(cla_machine)
+        for cla_app in sys.argv[2].split(','):          # 'all'
+            for cla_backend in sys.argv[3].split(','):  # 'all'
+                apps = get_default_apps()
+                backends = get_default_backends(cla_machine)
 
-    gpu_for_filename = eval_gpu()
-
-    for app in apps[cla_app]:
-        benchmark(cla_machine, app, backends[cla_backend], gpu_for_filename)
+                for app in apps[cla_app]:
+                    benchmark(cla_machine, app, backends[cla_backend], gpu_for_filename)

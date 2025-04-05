@@ -22,11 +22,10 @@ if __name__ == '__main__':
         print(f'Usage: python {sys.argv[0]} machine app backend')
         exit(1)
 
-    cla_machine = sys.argv[1]  # 'nvidia.alex.a40'
-    cla_app = sys.argv[2]      # 'all'
-    cla_backend = sys.argv[3]  # 'all'
+    for cla_machine in sys.argv[1].split(','):          # 'nvidia.alex.a40'
+        for cla_app in sys.argv[2].split(','):          # 'all'
+            for cla_backend in sys.argv[3].split(','):  # 'all'
+                apps = get_default_apps()
+                backends = get_default_backends(cla_machine)
 
-    apps = get_default_apps()
-    backends = get_default_backends(cla_machine)
-
-    execute(cla_machine, cla_app, cla_backend, apps, backends)
+                execute(cla_machine, cla_app, cla_backend, apps, backends)
