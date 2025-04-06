@@ -33,7 +33,13 @@ class Hip(Backend):
                 + [f.d_name for f in self.writes]
                 + [v.name for v in self.variables])
 
-            return f'{self.fct_name}<<<numBlocks, blockSize>>>({parameters});'
+            num_dims = len(self.it_space)
+            sizes = [s[2] for s in self.it_space]
+
+            block_size = ', '.join(str(s) for s in Hip.def_block_sizes[num_dims])
+            num_blocks = ', '.join(f'ceilingDivide({s}, {Hip.def_block_sizes[num_dims][d]})' for d, s in enumerate(sizes))
+
+            return f'{self.fct_name}<<<{num_blocks}, {block_size}>>>({parameters});'
 
         def generate(self):
             parameters = ', '.join(
@@ -76,9 +82,6 @@ class Hip(Backend):
                 self.mainStart() + \
                 newline + \
                 self.mainAllocateAndInit() + \
-                newline + \
-                f'dim3 blockSize({block_size});{newline}' + \
-                f'dim3 numBlocks({num_blocks});{newline}' + \
                 newline + \
                 self.mainMiddle() + \
                 newline + \

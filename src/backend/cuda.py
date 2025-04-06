@@ -33,7 +33,13 @@ class Cuda(Backend):
                 + [f.d_name for f in self.writes]
                 + [v.name for v in self.variables])
 
-            return f'{self.fct_name}<<<numBlocks, blockSize>>>({parameters});'
+            num_dims = len(self.it_space)
+            sizes = [s[2] for s in self.it_space]
+
+            block_size = ', '.join(str(s) for s in Cuda.def_block_sizes[num_dims])
+            num_blocks = ', '.join(f'ceilingDivide({s}, {Cuda.def_block_sizes[num_dims][d]})' for d, s in enumerate(sizes))
+
+            return f'{self.fct_name}<<<{num_blocks}, {block_size}>>>({parameters});'
 
         def generate(self):
             parameters = ', '.join(
@@ -64,9 +70,6 @@ class Cuda(Backend):
             super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
-            block_size = ', '.join(str(s) for s in Cuda.def_block_sizes[len(self.sizes)])
-            num_blocks = ', '.join(f'ceilingDivide({s}, blockSize.{d})' for s, d in zip(self.sizes, dim_to_char[0: len(self.sizes)]))
-
             return f'#include "{self.app}-util.h"{newline}' + \
                 newline + \
                 f'#include "../../../cuda-util.h"{newline}' + \
@@ -76,9 +79,6 @@ class Cuda(Backend):
                 self.mainStart() + \
                 newline + \
                 self.mainAllocateAndInit() + \
-                newline + \
-                f'dim3 blockSize({block_size});{newline}' + \
-                f'dim3 numBlocks({num_blocks});{newline}' + \
                 newline + \
                 self.mainMiddle() + \
                 newline + \
