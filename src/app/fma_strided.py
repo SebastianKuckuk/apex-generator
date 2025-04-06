@@ -31,12 +31,12 @@ class FMAStrided:
 
         it_space_kernel = [[i, 0, s * stride] for i, s in zip(iterators, sizes)]
 
-        data = backend.Field('data', 'tpe', sizes)
+        data = backend.Field('data', 'tpe', [f'{s} * {stride}' for s in sizes])
 
         if backend == UtilHeader:
             kernels = [
-                backend.Kernel(f'init{cls.name_as_postfix}', [*sizes, *parameters], [], [data], it_space, Assignment(data.access(iterators), '(tpe)1'), num_flop=0),
-                backend.generate_check_kernel(cls, [data], sizes, parameters, it_space, '(tpe)1', data.access(iterators)),
+                backend.Kernel(f'init{cls.name_as_postfix}', [*sizes, *parameters], [], [data], it_space_kernel, Assignment(data.access(iterators), '(tpe)1'), num_flop=0),
+                backend.generate_check_kernel(cls, [data], sizes, parameters, it_space_kernel, '(tpe)1', data.access(iterators)),
                 backend.generate_parse_kernel(cls, sizes, parameters)
             ]
 
