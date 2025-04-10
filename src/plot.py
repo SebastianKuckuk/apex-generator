@@ -7,24 +7,34 @@ from apps import get_default_apps
 from backend.backend import Backend
 
 
-def plot(machine, app, show_plot=False):
+def plot(machines, app, show_plot=False):
     print(f'Running {app.group}/{app.name} ...')
 
-    # configure the folder containing the measurements
-    data_folder = Backend.default_measurement_dir(machine, app)
-    data_folder.mkdir(parents=True, exist_ok=True)
+    metric = app.metric
 
-    # configure measurement data file and read it
-    data_file = data_folder / Backend.default_measurement_file(machine, app)
-    columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
-    index = 'index'
+    df = pd.DataFrame()
 
-    df = pd.read_csv(data_file, header=0, names=columns, index_col=index)
+    # read data from all machines
+    for machine in machines.split(','):
+        # configure the folder containing the measurements
+        data_folder = Backend.default_measurement_dir(machine, app)
+        data_folder.mkdir(parents=True, exist_ok=True)
+
+        # configure measurement data file and read it
+        data_file = data_folder / Backend.default_measurement_file(machine, app)
+        columns = ['index', 'gpu', 'backend', 'nx', 'ny', 'nz', 'nIt', 'nWarmUp', 'type', *app.additional_parameters, 'time', 'mlups', 'bandwidth', 'compute']
+        index = 'index'
+
+        df = pd.concat([df, pd.read_csv(data_file, header=0, names=columns, index_col=index)], ignore_index=True)
 
     # add auxiliary columns
     df['numCells'] = df['nx'] * df['ny'] * df['nz']
     df['version'] = df[['backend', 'gpu', 'type', *app.additional_parameters]].apply(
         lambda x: f'{x[0]} ({x[1]}, {x[2]})' + (' - ' + ', '.join([f'{p}' for p in x[3:]]) if len(x) > 3 else ''), axis=1)
+
+    # filter by data type
+    types = df['type'].unique()
+    df = df[df.apply(lambda x: x['type'] in types, axis=1)]
 
     # filter by gpu
     gpus = df['gpu'].unique()
@@ -36,7 +46,7 @@ def plot(machine, app, show_plot=False):
 
     # remove unnecessary columns and group by group_col
     group_col = 'version'
-    df = df[[group_col, 'gpu', 'backend', 'numCells', 'bandwidth']]
+    df = df[[group_col, 'gpu', 'backend', 'type', 'numCells', metric]]
     df.set_index('numCells', inplace=True)
     # df = df.groupby(group_col)
 
@@ -44,27 +54,38 @@ def plot(machine, app, show_plot=False):
     plot_file_name = data_file.with_suffix('.pdf')
     print(f'Plotting results to \'{plot_file_name}\'')
 
-    df.groupby(group_col)['bandwidth'].plot(legend=True, logx=True, figsize=[11.7, 8.3])
+    df.groupby(group_col)[metric].plot(legend=True, logx=True, figsize=[11.7, 8.3])
     plt.savefig(plot_file_name)
 
     if show_plot:
         plt.show()
+
+    # plot per type
+    for tpe in types:
+        print(f'Plotting for type {tpe}')
+        plt.clf()
+        filtered = df[tpe == df['type']]
+        filtered.groupby('version')[metric].plot(legend=True, logx=True, figsize=[11.7, 8.3])
+        plt.savefig(data_folder / f'{app.name}-{tpe.replace(" ", "")}.pdf')
+        plt.savefig(data_folder / f'{app.name}-{tpe.replace(" ", "")}.png')
 
     # plot per back end
     for backend in backends:
         print(f'Plotting for back end {backend}')
         plt.clf()
         filtered = df[backend == df['backend']]
-        filtered.groupby('version')['bandwidth'].plot(legend=True, logx=True, figsize=[11.7, 8.3])
+        filtered.groupby('version')[metric].plot(legend=True, logx=True, figsize=[11.7, 8.3])
         plt.savefig(data_folder / f'{app.name}-{backend.replace(" ", "")}.pdf')
+        plt.savefig(data_folder / f'{app.name}-{backend.replace(" ", "")}.png')
 
     # plot per gpu
     for gpu in gpus:
         print(f'Plotting for GPU {gpu}')
         plt.clf()
         filtered = df[gpu == df['gpu']]
-        filtered.groupby('version')['bandwidth'].plot(legend=True, logx=True, figsize=[11.7, 8.3])
+        filtered.groupby('version')[metric].plot(legend=True, logx=True, figsize=[11.7, 8.3])
         plt.savefig(data_folder / f'{app.name}-{gpu.replace(" ", "")}.pdf')
+        plt.savefig(data_folder / f'{app.name}-{gpu.replace(" ", "")}.png')
 
 
 if len(sys.argv) < 3:
