@@ -11,7 +11,7 @@ class SquareRoot:
     name = 'square-root'
     name_as_postfix = name.title().replace("-", "")
     group = 'benchmark'
-    metric = 'flops'
+    metric = 'compute'
     additional_parameters = []
     default_parameters = ['double', 64, 1, 2]
     # default_parameters = ['double', 1024 * 1024, 1, 2]

@@ -10,7 +10,7 @@ class FMA:
     name = 'fma'
     name_as_postfix = name.title().replace("-", "")
     group = 'benchmark'
-    metric = 'flops'
+    metric = 'compute'
     default_type = 'float'
     additional_parameters = []
     default_parameters = ['double', 64, 1, 2]
@@ -42,7 +42,7 @@ class FMA:
                                 f'auto tmp = b; b = a; a = tmp;{newline}' +
                                 f'{"}"}{newline}' +
                                 newline +
-                                f'{Assignment("tpe acc", iterators[0])}{newline}' +
+                                f'{Assignment("tpe acc", data.access(iterators))}{newline}' +
                                 newline +
                                 f'for (auto r = 0; r < {cls.num_rep}; ++r){newline}' +
                                 f'acc = a * acc + b;{newline}' +

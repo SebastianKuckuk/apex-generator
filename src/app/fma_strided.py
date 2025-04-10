@@ -10,7 +10,7 @@ class FMAStrided:
     name = 'fma-strided'
     name_as_postfix = name.title().replace("-", "")
     group = 'benchmark'
-    metric = 'flops'
+    metric = 'compute'
     default_type = 'float'
     additional_parameters = ['stride']
     default_parameters = ['double',  # datatype
@@ -51,9 +51,11 @@ class FMAStrided:
                                newline +
                                f'{Assignment("tpe acc", iterators[0])}{newline}' +
                                newline +
-                               f'if (0 == {iterators[0]} % {stride}){newline}' +
+                               f'if (0 == {iterators[0]} % {stride}) {"{"}{newline}' +
+                               f'{Assignment("acc", data.access(iterators))}{newline}' +
                                f'for (auto r = 0; r < {cls.num_rep}; ++r){newline}' +
                                f'acc = a * acc + b;{newline}' +
+                               f'{"}"}{newline}' +
                                newline +
                                f'// dummy check to prevent compiler from eliminating loop{newline}' +
                                f'if ((tpe)0 == acc)' +
