@@ -39,7 +39,7 @@ class Hip(Backend):
             block_size = ', '.join(str(s) for s in Hip.def_block_sizes[num_dims])
             num_blocks = ', '.join(f'ceilingDivide({s}, {Hip.def_block_sizes[num_dims][d]})' for d, s in enumerate(sizes))
 
-            return f'{self.fct_name}<<<{num_blocks}, {block_size}>>>({parameters});'
+            return f'{self.fct_name}<<<dim3({num_blocks}), dim3({block_size})>>>({parameters});'
 
         def generate(self):
             parameters = ', '.join(
