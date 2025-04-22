@@ -14,9 +14,12 @@ class Makefile(Base):
 
     @classmethod
     def default_code_file(cls, machine, _):
-        return f'Makefile'
+        if cls.genToApex:
+            return f'Makefile.{machine}'
+        return 'Makefile'
 
-    def generate(machine, app, backends):
+    @classmethod
+    def generate(cls, machine, app, backends):
         util_header = UtilHeader
 
         targets = f' \\{newline}'.join(f'\t{backend.default_bin_file(machine, app)}' for backend in backends)
@@ -25,7 +28,7 @@ class Makefile(Base):
         for backend in backends:
             compiler, flags, libs = platform(machine, backend.name)  # TODO: specific util headers for cuda, hip, sycl
             build_rules.append(f'''\
-$(BUILD_DIR)/{backend.default_bin_file(machine, app)}: {backend.default_code_file(machine, app)} {util_header.default_code_file(machine, app)} ../../../util.h
+$(BUILD_DIR)/{backend.default_bin_file(machine, app)}: {backend.default_code_file(machine, app)} {util_header.default_code_file(machine, app)} {"../../util.h" if cls.genToApex else "../../../util.h"}
 \t{compiler} {"" if flags is None else " ".join(flags)} -o $(BUILD_DIR)/{backend.default_bin_file(machine, app)} {backend.default_code_file(machine, app)} {"" if libs is None else " ".join(libs)}'''.strip())
         build_rules = f'{newline}{newline}'.join(build_rules)
 

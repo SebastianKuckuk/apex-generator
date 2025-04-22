@@ -5,14 +5,18 @@ from platforms import platform
 
 
 class Backend:
+    genToApex = False
+
     @classmethod
     def default_name(cls, app):
         return f'{app}-{cls.short_name}'
 
     @classmethod
     def default_code_dir(cls, machine, app):
-        # return Path('../../apex/src') / app.group / app.name
-        return Path('..') / 'generated' / machine / app.group / app.name
+        if cls.genToApex:
+            return Path('../../apex/src') / app.group / app.name
+        else:
+            return Path('..') / 'generated' / machine / app.group / app.name
 
     @classmethod
     def default_code_file(cls, machine, app):
@@ -29,8 +33,10 @@ class Backend:
 
     @classmethod
     def default_bin_dir(cls, machine, app):
-        # return Path('../../apex/build') / app.group / app.name
-        return Path('..') / 'build' / machine / app.group / app.name
+        if cls.genToApex:
+            return Path('../../apex/build') / app.group / app.name
+        else:
+            return Path('..') / 'build' / machine / app.group / app.name
 
     @classmethod
     def default_bin_file(cls, machine, app):

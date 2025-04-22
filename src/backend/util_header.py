@@ -1,3 +1,4 @@
+from backend.backend import Backend
 from backend.base import Base
 
 from node.application import AbstractApplication
@@ -61,6 +62,6 @@ class UtilHeader(Base):
             super().__init__(backend, app, sizes, parameters, kernels)
 
         def generate(self):
-            return f'#include "../../../util.h"{newline}' + \
+            return (f'#include "../../util.h"{newline}' if Backend.genToApex else f'#include "../../../util.h"{newline}') + \
                 2 * newline + \
                 self.kernelDecls()
