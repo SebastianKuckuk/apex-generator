@@ -39,7 +39,11 @@ class Cuda(Backend):
             block_size = ', '.join(str(s) for s in Cuda.def_block_sizes[num_dims])
             num_blocks = ', '.join(f'ceilingDivide({s}, {Cuda.def_block_sizes[num_dims][d]})' for d, s in enumerate(sizes))
 
-            return f'{self.fct_name}<<<dim3({num_blocks}), dim3({block_size})>>>({parameters});'
+            if num_dims > 1:
+                block_size = f'dim3({block_size})'
+                num_blocks = f'dim3({num_blocks})'
+
+            return f'{self.fct_name}<<<{num_blocks}, {block_size}>>>({parameters});'
 
         def generate(self):
             parameters = ', '.join(
