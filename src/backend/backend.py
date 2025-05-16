@@ -1,5 +1,6 @@
 from pathlib import Path
 import subprocess
+import os
 
 from platforms import platform
 
@@ -26,10 +27,26 @@ class Backend:
     def default_compile(cls, machine, app):
         compiler, flags, libs = platform(machine, cls.name)
 
-        return [compiler, *([] if flags is None else flags),
+        if flags is None:
+            flags = []
+        if libs is None:
+            libs = []
+
+        env_map = {
+            '$WORK': os.environ["WORK"],
+            '$(WORK)': os.environ["WORK"],
+            '$HOME': os.environ["HOME"],
+            '$(HOME)': os.environ["HOME"]
+        }
+        for k, v in env_map.items():
+            compiler = compiler.replace(k, v)
+            flags = [f.replace(k, v) for f in flags]
+            libs = [f.replace(k, v) for f in libs]
+
+        return [compiler, *flags,
                 '-o', cls.default_bin_dir(machine, app) / cls.default_bin_file(machine, app),
                 cls.default_code_dir(machine, app) / cls.default_code_file(machine, app),
-                *([] if libs is None else libs)]
+                *libs]
 
     @classmethod
     def default_bin_dir(cls, machine, app):
