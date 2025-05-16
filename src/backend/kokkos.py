@@ -102,7 +102,8 @@ class Kokkos(Backend):
             its = ', '.join(f'const {i[0].decl()}' for i in self.it_space)
 
             parallel_for = \
-                f'Kokkos::parallel_for({for_bounds}, //{newline}' + \
+                f'Kokkos::parallel_for( //{newline}' + \
+                f'{for_bounds}, //{newline}' + \
                 f'KOKKOS_LAMBDA({its}) {"{"} //{newline}' + \
                 f'{self.body} \\' + newline + \
                 f'{"}"});'
