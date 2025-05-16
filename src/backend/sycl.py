@@ -86,7 +86,7 @@ class SyclBuffer(Sycl):
                 if f in self.reads:
                     return 'sycl::read_only'
                 return 'sycl::write_only'
-            access_buffers = newline.join(f'auto {f.name} = {f.d_name}.get_access(h, {access_mode(f)});' for f in self.reads + self.writes)
+            access_buffers = newline.join(f'auto {f.name} = {f.d_name}.get_access(h, {access_mode(f)});' for f in sorted(set(self.reads + self.writes), key=lambda f: f.name))
 
             dims = len(self.it_space)
             if 1 == dims:
