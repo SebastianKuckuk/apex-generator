@@ -17,6 +17,14 @@ def platform(machine, backend):
     #           .aquavan1.mi300x
     #           .aquavan2.mi300a
 
+    if machine not in [
+        'nvidia.docker.a40', 'nvidia.docker.a100', 'nvidia.docker.h100', 'nvidia.docker.h200',
+        'nvidia.alex.a40', 'nvidia.alex.a100',
+        'nvidia.helma.h100', 'nvidia.helma.h200',
+        'amd.testfront.aquavan1.mi300x', 'amd.testfront.aquavan2.mi300a']:
+        raise ValueError(f'Unknown machine: {machine}')
+
+
     def get_sm():
         if machine.startswith('nvidia'):
             if machine.endswith('h100') or machine.endswith('h200'):
