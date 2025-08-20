@@ -94,7 +94,7 @@ def platform(machine, backend):
             flags = ['-O3', '-std=c++17', '-acc=gpu', '-target=gpu']
             if 'OpenACC Managed Memory' == backend:
                 if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
-                    flags.append('-gpu=mem:unified')
+                    flags.append('-gpu=mem:managed')
                 else:
                     flags.append('-gpu=managed')
 
@@ -104,7 +104,7 @@ def platform(machine, backend):
             flags = ['-O3', '-std=c++17', '-mp=gpu', '-target=gpu']
             if 'OpenMP Target Managed Memory' == backend:
                 if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
-                    flags.append('-gpu=mem:unified')
+                    flags.append('-gpu=mem:managed')
                 else:
                     flags.append('-gpu=managed')
         elif machine in ['amd.testfront.aquavan1']:
