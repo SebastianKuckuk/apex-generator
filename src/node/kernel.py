@@ -1,7 +1,8 @@
 class AbstractKernel:
     def __init__(self, name, variables, reads, writes, it_space, body, has_tpe_template, num_flop):
         self.name = name
-        self.fct_name = self.name.replace('-', '')
+        self.fct_name = self.name.title().replace('-', '')
+        self.fct_name = self.fct_name[0].lower() + self.fct_name[1:]
         self.variables = variables
         self.reads = reads
         self.writes = writes
