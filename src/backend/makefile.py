@@ -28,7 +28,7 @@ class Makefile(Base):
         for backend in backends:
             compiler, flags, libs = platform(machine, backend.name)  # TODO: specific util headers for cuda, hip, sycl
             build_rules.append(f'''\
-$(BUILD_DIR)/{backend.default_bin_file(machine, app)}: mk-target-dir {backend.default_code_file(machine, app)} {util_header.default_code_file(machine, app)} {"../../util.h" if cls.genToApex else "../../../util.h"}
+$(BUILD_DIR)/{backend.default_bin_file(machine, app)}: {backend.default_code_file(machine, app)} {util_header.default_code_file(machine, app)} {"../../util.h" if cls.genToApex else "../../../util.h"} | mk-target-dir
 \t{compiler} {"" if flags is None else " ".join(flags)} -o $(BUILD_DIR)/{backend.default_bin_file(machine, app)} {backend.default_code_file(machine, app)} {"" if libs is None else " ".join(libs)}'''.strip())
         build_rules = f'{newline}{newline}'.join(build_rules)
 
@@ -66,6 +66,7 @@ targets = \\
 .PHONY: all
 all: mk-target-dir $(targets)
 
+.PHONY: mk-target-dir
 mk-target-dir:
 	mkdir -p $(BUILD_DIR)
 
