@@ -128,7 +128,9 @@ class OMPTargetMM(OMPTarget):
         def generate(self):
             return f'#include "{self.app}-util.h"{newline}' + \
                 2 * newline + \
+                f'#ifndef __NVCOMPILER{newline}' + \
                 f'#pragma omp requires unified_shared_memory{newline}' + \
+                f'#endif{newline}' + \
                 2 * newline + \
                 self.kernelDecls() + \
                 2 * newline + \
