@@ -31,7 +31,7 @@ class OMPTarget(Backend):
 
         def generate(self):
             parameters = ', '.join(
-                [f'const {f.tpe} * const __restrict__ {f.name}' for f in self.reads if f not in self.writes]
+                [f'const {f.tpe} *__restrict__ {f.name}' for f in self.reads if f not in self.writes]
                 + [f'{f.tpe} *__restrict__ {f.name}' for f in self.writes]
                 + [f'{v.tpe} {v.name}' for v in self.variables])
 
