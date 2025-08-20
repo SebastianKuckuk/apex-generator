@@ -79,18 +79,15 @@ class AbstractApplication:
 
     def mainAllocateAndInit(self):
         size_list = ', '.join(f'{s}' for s in self.sizes)
-        field_list = ', '.join(f.name for f in self.fields)
-
-        if len(self.parameters) > 0:
-            param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
-        else:
-            param_list = ''
+        field_list = ', '.join(f.name for f in self.fields) + (', ' if len(self.fields) > 0 else '')
+        
+        param_list = ', ' + ', '.join(f'{p}' for p in self.parameters) if len(self.parameters) > 0 else ''
 
         return \
             self.fieldAllocates() + newline + \
             newline + \
             f'// init{newline}' + \
-            f'init{self.app.title().replace("-", "")}({field_list}, {size_list}{param_list});{newline}' + \
+            f'init{self.app.title().replace("-", "")}<tpe>({field_list}{size_list}{param_list});{newline}' + \
             self.toDeviceCopies()
 
     def mainMiddle(self):
@@ -98,6 +95,8 @@ class AbstractApplication:
 
         num_flop = sum(k.num_flop for k in self.kernels)
         num_byte = ' + '.join(f'sizeof({f.tpe})' for k in self.kernels for f in k.reads + k.writes)
+        if not num_byte:
+            num_byte = '0'
 
         return \
             f'// warm-up{newline}' + \
@@ -119,8 +118,8 @@ class AbstractApplication:
             f'printStats<tpe>(end - start, nIt, {total_size}, tpeName, {num_byte}, {num_flop});{newline}'
 
     def mainEnd(self):
-        size_list = ', '.join(f'{s}' for s in self.sizes)
-        field_list = ', '.join(f.name for f in self.fields)
+        size_list = ', '.join(f'{s}' for s in self.sizes) + (', ' if len(self.sizes) > 0 else '')
+        field_list = ', '.join(f.name for f in self.fields) + (', ' if len(self.fields) > 0 else '')
 
         if len(self.parameters) > 0:
             param_list = ', ' + ', '.join(f'{p}' for p in self.parameters)
@@ -129,7 +128,7 @@ class AbstractApplication:
 
         return self.toHostCopies() + \
             f'// check solution{newline}' + \
-            f'checkSolution{self.app.title().replace("-", "")}({field_list}, {size_list}, nIt + nItWarmUp{param_list});{newline}' + \
+            f'checkSolution{self.app.title().replace("-", "")}<tpe>({field_list}{size_list}nIt + nItWarmUp{param_list});{newline}' + \
             newline + \
             self.fieldFrees() + newline + \
             newline + \
