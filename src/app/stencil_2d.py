@@ -71,7 +71,7 @@ class Stencil2D:
 
         else:
             kernels = [
-                backend.Kernel(cls.name, sizes, [u], [uNew], it_space,
+                backend.Kernel(cls.name[:-1] + 'D', sizes, [u], [uNew], it_space,
                                 Assignment(uNew.access(iterators), 0.25 * (
                                     u.access([iterators[0] - 1, iterators[1]])
                                     + u.access([iterators[0] + 1, iterators[1]])

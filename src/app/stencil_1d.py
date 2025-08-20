@@ -67,7 +67,7 @@ class Stencil1D:
 
         else:
             kernels = [
-                backend.Kernel(cls.name, sizes, [u], [uNew], it_space,
+                backend.Kernel(cls.name[:-1] + 'D', sizes, [u], [uNew], it_space,
                                 Assignment(uNew.access(iterators), 0.5 * (u.access([iterators[0] - 1]) + u.access([iterators[0] + 1]))),
                                 num_flop=1 + 1 * 2),  # 1 MUL and 1 FMA
                 PseudoKernel(f'std::swap({u.d_name}, {uNew.d_name});')
