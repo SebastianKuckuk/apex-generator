@@ -70,12 +70,12 @@ def platform(machine, backend):
 
     elif backend.startswith('CUDA'):
         if machine.startswith('nvidia'):
-            if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
+            # if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
                 compiler = 'nvcc'
                 flags = ['-O3', '-std=c++17', f'-arch=sm_{get_sm()}', '--expt-extended-lambda', '--expt-relaxed-constexpr']
-            else:
-                compiler = 'nvc++'
-                flags = ['-O3', '-fast', '-std=c++17']
+            # else:
+                # compiler = 'nvc++'
+                # flags = ['-O3', '-fast', '-std=c++17']
 
     elif backend.startswith('HIP'):
         if machine.startswith('amd'):
@@ -93,20 +93,20 @@ def platform(machine, backend):
             compiler = 'nvc++'
             flags = ['-O3', '-std=c++17', '-acc=gpu', '-target=gpu']
             if 'OpenACC Managed Memory' == backend:
-                if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
+                # if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
                     flags.append('-gpu=mem:managed')
-                else:
-                    flags.append('-gpu=managed')
+                # else:
+                    # flags.append('-gpu=managed')
 
     elif backend.startswith('OpenMP Target'):
         if machine.startswith('nvidia'):
             compiler = 'nvc++'
             flags = ['-O3', '-std=c++17', '-mp=gpu', '-target=gpu']
             if 'OpenMP Target Managed Memory' == backend:
-                if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
+                # if machine.startswith('nvidia.helma') or machine.startswith('nvidia.docker'):
                     flags.append('-gpu=mem:managed')
-                else:
-                    flags.append('-gpu=managed')
+                # else:
+                    # flags.append('-gpu=managed')
         elif machine in ['amd.testfront.aquavan1']:
             compiler = '/opt/rocm/bin/amdclang++'
             flags = ['-fopenmp']
